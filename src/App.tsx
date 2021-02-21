@@ -170,6 +170,9 @@ function App() {
           <button id="2" onClick={() => handleSetComplete(2)}>
             That was too easy!
           </button>
+          <button onClick={() => handleNextExercise()}>
+            Give me a different exercise!
+          </button>
         </div>
       </div>
     );
