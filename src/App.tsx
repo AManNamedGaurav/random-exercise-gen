@@ -1,183 +1,204 @@
 import React, { useState, useEffect } from "react";
-import Exercise from "./models/Exercise";
-import PersonalRecord from "./models/PersonalRecord";
+import ExerciseRecord from "./models/Exercise";
+import Difficulty from "./models/Difficulty";
 
 const exerciseUrl =
   "https://wger.de/api/v2/exercise/?equipment=7&language=2&limit=50";
 
 function App() {
-  const [exercise, setExercise] = useState<Exercise | null>(null);
+  const [exerciseRecord, setExerciseRecord] = useState<ExerciseRecord | null>(
+    null
+  );
   const [isLoading, setLoading] = useState<boolean>(true);
-  const [isExerciseComplete, setExerciseComplete] = useState<boolean>(false);
+  const [isExerciseAttempted, setExerciseAttempted] = useState<boolean>(false);
   const [isError, setError] = useState<boolean>(false);
 
-  const getExercise = async () => {
-    let response = await fetch(exerciseUrl);
-    let data = await response.json();
-    let exerciseCount = data["count"];
-    //get a random object from the array, results
-    let randExObj = data["results"][Math.floor(Math.random() * exerciseCount)];
-    console.log(randExObj);
+  useEffect(() => {
+    handleNewExerciseRequest();
+  }, []);
 
+  const handleNewExerciseRequest = async () => {
+    setLoading(true);
+    setExerciseAttempted(false);
+    let response: Response = await fetch(exerciseUrl);
+    let data: any = await response.json();
+    let exerciseCount: number = data["count"];
+    //get a random object from the results array
+    let randExObj: object =
+      data["results"][Math.floor(Math.random() * exerciseCount)];
+    console.log("Random exercise object: \n" + randExObj);
     //get relevant data from the exercise object and set state
-    let id: string = randExObj["id"];
-    let name: string = randExObj["name"];
-    let description: string = randExObj["description"];
-    var pr: PersonalRecord;
-    try {
-      pr = JSON.parse(localStorage.getItem(id) || "");
-    } catch (SyntaxError) {
-      pr = {
-        personalBest: 0,
-        nextRepGoal: 5,
-        numOfSetsCompleted: 0,
-        currentDifficultyScale: 1,
+    let randomExerciseRecord: ExerciseRecord = extractExerciseRecord(randExObj);
+    setExerciseRecord(randomExerciseRecord);
+    setLoading(false);
+  };
+
+  const handleExerciseAttempted = (difficulty: Difficulty) => {
+    setExerciseAttempted(true);
+    if (exerciseRecord) {
+      //increment attempt count
+      let updatedExRecord = {
+        ...exerciseRecord,
+        attemptCount: exerciseRecord.attemptCount + 1,
       };
-    }
 
-    setExercise({
-      id: id,
-      name: name,
-      description: description,
-      personalRecord: pr,
-    });
-  };
-
-  //user has exercised
-  const handleSetComplete = (difficulty: number) => {
-    incrementNumOfSetsCompleted();
-    //calculate next repGoal based on difficulty of this set
-    updateNextRepGoal(difficulty);
-    setExerciseComplete(true);
-  };
-
-  const updateNextRepGoal = (difficultyScale: number) => {
-    let newRepGoal: number | null = getNextRepGoal(difficultyScale);
-
-    if (newRepGoal) {
-      setExercise((prev) => {
-        if (!prev) {
-          console.error("Trying to set personalRecord.newRepGoal of null");
-          setError(true);
-          return null;
-        } else if (newRepGoal) {
-          //prev state does exist. can set new Rep Goal
-          return {
-            ...prev,
-            personalRecord: {
-              ...prev.personalRecord,
-              nextRepGoal: newRepGoal,
-            },
+      //update personalBest if user completed
+      switch (difficulty) {
+        case Difficulty.CHALLENGING:
+        case Difficulty.EASY:
+          //update record's new personal best
+          updatedExRecord = {
+            ...updatedExRecord,
+            personalBest: updatedExRecord.repGoal,
           };
-        }
-        return null;
-      });
-      exercise &&
-        localStorage.setItem(
-          exercise.id,
-          JSON.stringify(exercise.personalRecord)
-        );
-      setExerciseComplete(true);
+          break;
+      }
+      let newRepGoal: number = calculateNextRepGoal(
+        updatedExRecord,
+        difficulty
+      );
+      updatedExRecord = { ...updatedExRecord, repGoal: newRepGoal };
+      storeExerciseRecord(updatedExRecord);
     } else {
-      console.error("could not set nextRepGoal");
+      console.error(
+        "Trying to handle exercise attempted with no exercise in state"
+      );
       setError(true);
     }
   };
-  const getNextRepGoal = (difficultyScale: number): number | null => {
-    let numOfSetsCompleted: number | undefined =
-      exercise?.personalRecord?.numOfSetsCompleted;
-    let currentDifficultyScale: number | undefined =
-      exercise?.personalRecord?.currentDifficultyScale;
-    if (
-      !(
-        numOfSetsCompleted === undefined || currentDifficultyScale === undefined
-      )
-    ) {
-      return Math.ceil(
-        (Math.log(numOfSetsCompleted + 1) + 5) *
-          currentDifficultyScale *
-          difficultyScale
-      );
-    } else {
-      return null;
+
+  const extractExerciseRecord = (randExObj: any): ExerciseRecord => {
+    let id: string = randExObj["id"];
+    let name: string = randExObj["name"];
+    let description: string = randExObj["description"];
+    let localExercise: ExerciseRecord;
+    let item = localStorage.getItem(id);
+    console.log(
+      "item: " + item + "\nfound at key: " + id + "\n in local storage"
+    );
+    try {
+      localExercise = retrieveLocalExerciseRecord(id);
+      let remoteExercise = {
+        ...localExercise,
+        name: name,
+        description: description,
+      };
+      console.log("Remote and local exercises for the same id");
+      console.log("Local Exercise with id: " + localExercise.id);
+      console.log(localExercise);
+      console.log("Remote exercise with id: " + remoteExercise.id);
+      console.log(remoteExercise);
+    } catch (e) {
+      console.log("Could not find local exercise for id: " + id);
+      localExercise = {
+        id: id,
+        name: name,
+        description: description,
+        personalBest: 0,
+        repGoal: 5,
+        attemptCount: 0,
+        difficultyCurveScale: 1,
+      };
     }
+
+    //TODO: create a local back up of all exercises in remote api endpoint
+    return localExercise;
   };
 
-  const incrementNumOfSetsCompleted = () => {
-    setExercise((prev) => {
-      if (!prev) {
-        console.error(
-          "Trying to increment Number of Attempts for a null Exercise"
-        );
-        setError(true);
-        return null;
-      } else {
-        //prev state does exist. can increment numOfAttempts
-        let newNumOfAttempts = prev.personalRecord.numOfSetsCompleted + 1;
-        return {
-          ...prev,
-          personalRecord: {
-            ...prev.personalRecord,
-            numOfSetsCompleted: newNumOfAttempts,
-          },
-        };
-      }
-    });
+  const calculateNextRepGoal = (
+    record: ExerciseRecord,
+    difficulty: Difficulty
+  ): number => {
+    let attempts: number = record.attemptCount;
+    let currentDifficultyScale: number = record.difficultyCurveScale;
+    let newDifficultyScale: number;
+    switch (difficulty) {
+      case Difficulty.CHALLENGING:
+        newDifficultyScale = currentDifficultyScale * 1;
+        break;
+      case Difficulty.EASY:
+        newDifficultyScale = currentDifficultyScale * 2;
+        break;
+      default:
+        newDifficultyScale = currentDifficultyScale * 0.75;
+    }
+    return Math.ceil(
+      (Math.log(attempts + 1) + 5) * currentDifficultyScale * newDifficultyScale
+    );
   };
 
-  const handleNextExercise = () => {
-    setLoading(true);
-    getExercise().then(() => setLoading(false));
+  const storeExerciseRecord = (exercise: ExerciseRecord) => {
+    localStorage.setItem(exercise.id, JSON.stringify(exercise));
+  };
+  const retrieveLocalExerciseRecord = (id: string): ExerciseRecord => {
+    return JSON.parse(localStorage.getItem(id) || "");
   };
 
-  //fetch data on initial render
-  useEffect(() => {
-    getExercise().then(() => setLoading(false));
-  }, []);
-
+  //*****************************************VIEW*********************************************** */
   if (isLoading) {
     return <div>Loading</div>;
   } else if (!isError) {
-    if (isExerciseComplete) {
+    if (isExerciseAttempted) {
       return (
         <>
           <div>GOOD JOB</div>
           <button
             onClick={() => {
-              handleNextExercise();
+              handleNewExerciseRequest();
             }}
           >
             New Exercise
+          </button>
+          <button
+            onClick={() => {
+              localStorage.clear();
+            }}
+          >
+            Clear My History
           </button>
         </>
       );
     }
     return (
       <div>
-        <div>{exercise?.name}</div>
-        <div>{exercise?.description}</div>
+        <div>{exerciseRecord?.name}</div>
+        <div>{exerciseRecord?.description}</div>
+        <div>Personal Best Reps/Seconds: {exerciseRecord?.personalBest}</div>
+        <div>Reps: {exerciseRecord?.repGoal}</div>
         <div>
-          Personal Best Reps/Seconds: {exercise?.personalRecord.personalBest}
-        </div>
-        <div>Push For: {exercise?.personalRecord.nextRepGoal}</div>
-        <div>
-          <button id="0" onClick={() => handleSetComplete(0.75)}>
+          <button
+            id="0"
+            onClick={() => handleExerciseAttempted(Difficulty.IMPOSSIBLE)}
+          >
             I couldn't complete the set :(
           </button>
-          <button id="1" onClick={() => handleSetComplete(1)}>
+          <button
+            id="1"
+            onClick={() => handleExerciseAttempted(Difficulty.CHALLENGING)}
+          >
             That was a challenging set!
           </button>
-          <button id="2" onClick={() => handleSetComplete(2)}>
+          <button
+            id="2"
+            onClick={() => handleExerciseAttempted(Difficulty.EASY)}
+          >
             That was too easy!
           </button>
-          <button onClick={() => handleNextExercise()}>
+          <button onClick={() => handleNewExerciseRequest()}>
             Give me a different exercise!
           </button>
         </div>
+        <button
+          onClick={() => {
+            localStorage.clear();
+          }}
+        >
+          Clear My History
+        </button>
       </div>
     );
   } else {
-    return <div>Something went wrong. Check your console</div>;
+    return <div>Something went wrong</div>;
   }
 }
 

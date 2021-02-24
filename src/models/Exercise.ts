@@ -1,10 +1,11 @@
-import PersonalRecord from "./PersonalRecord";
-
-interface Exercise {
+interface ExerciseRecord {
   id: string;
   name: string;
   description: string;
-  personalRecord: PersonalRecord;
+  personalBest: number;
+  repGoal: number;
+  attemptCount: number;
+  difficultyCurveScale: number;
 }
 
-export default Exercise;
+export default ExerciseRecord;
