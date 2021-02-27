@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import ExerciseRecord from "./models/Exercise";
 import Difficulty from "./models/Difficulty";
+import { extractExerciseRecord, calculateNextRepGoal } from "./services/utils";
+import { storeExerciseRecord } from "./services/LocalRecordStorageService";
+import HistoryDeletionDialog from "./components/HistoryDeletionDialog";
 
 const exerciseUrl =
   "https://wger.de/api/v2/exercise/?equipment=7&language=2&limit=50";
@@ -67,73 +70,6 @@ function App() {
     }
   };
 
-  const extractExerciseRecord = (randExObj: any): ExerciseRecord => {
-    let id: string = randExObj["id"];
-    let name: string = randExObj["name"];
-    let description: string = randExObj["description"];
-    let localExercise: ExerciseRecord;
-    let item = localStorage.getItem(id);
-    console.log(
-      "item: " + item + "\nfound at key: " + id + "\n in local storage"
-    );
-    try {
-      localExercise = retrieveLocalExerciseRecord(id);
-      let remoteExercise = {
-        ...localExercise,
-        name: name,
-        description: description,
-      };
-      console.log("Remote and local exercises for the same id");
-      console.log("Local Exercise with id: " + localExercise.id);
-      console.log(localExercise);
-      console.log("Remote exercise with id: " + remoteExercise.id);
-      console.log(remoteExercise);
-    } catch (e) {
-      console.log("Could not find local exercise for id: " + id);
-      localExercise = {
-        id: id,
-        name: name,
-        description: description,
-        personalBest: 0,
-        repGoal: 5,
-        attemptCount: 0,
-        difficultyCurveScale: 1,
-      };
-    }
-
-    //TODO: create a local back up of all exercises in remote api endpoint
-    return localExercise;
-  };
-
-  const calculateNextRepGoal = (
-    record: ExerciseRecord,
-    difficulty: Difficulty
-  ): number => {
-    let attempts: number = record.attemptCount;
-    let currentDifficultyScale: number = record.difficultyCurveScale;
-    let newDifficultyScale: number;
-    switch (difficulty) {
-      case Difficulty.CHALLENGING:
-        newDifficultyScale = currentDifficultyScale * 1;
-        break;
-      case Difficulty.EASY:
-        newDifficultyScale = currentDifficultyScale * 2;
-        break;
-      default:
-        newDifficultyScale = currentDifficultyScale * 0.75;
-    }
-    return Math.ceil(
-      (Math.log(attempts + 1) + 5) * currentDifficultyScale * newDifficultyScale
-    );
-  };
-
-  const storeExerciseRecord = (exercise: ExerciseRecord) => {
-    localStorage.setItem(exercise.id, JSON.stringify(exercise));
-  };
-  const retrieveLocalExerciseRecord = (id: string): ExerciseRecord => {
-    return JSON.parse(localStorage.getItem(id) || "");
-  };
-
   //*****************************************VIEW*********************************************** */
   if (isLoading) {
     return <div>Loading</div>;
@@ -149,13 +85,7 @@ function App() {
           >
             New Exercise
           </button>
-          <button
-            onClick={() => {
-              localStorage.clear();
-            }}
-          >
-            Clear My History
-          </button>
+          <HistoryDeletionDialog />
         </>
       );
     }
@@ -163,7 +93,6 @@ function App() {
       <div>
         <div>{exerciseRecord?.name}</div>
         <div>{exerciseRecord?.description}</div>
-        <div>Personal Best Reps/Seconds: {exerciseRecord?.personalBest}</div>
         <div>Reps: {exerciseRecord?.repGoal}</div>
         <div>
           <button
@@ -188,13 +117,7 @@ function App() {
             Give me a different exercise!
           </button>
         </div>
-        <button
-          onClick={() => {
-            localStorage.clear();
-          }}
-        >
-          Clear My History
-        </button>
+        <HistoryDeletionDialog />
       </div>
     );
   } else {
