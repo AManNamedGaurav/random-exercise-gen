@@ -6,7 +6,7 @@ import { storeExerciseRecord } from "./services/LocalRecordStorageService";
 import HistoryDeletionDialog from "./components/HistoryDeletionDialog";
 
 const exerciseUrl =
-  "https://wger.de/api/v2/exercise/?equipment=7&language=2&limit=50";
+  "https://wger.de/api/v2/exerciseinfo/?equipment=7&language=2&limit=50";
 
 function App() {
   const [exerciseRecord, setExerciseRecord] = useState<ExerciseRecord | null>(
