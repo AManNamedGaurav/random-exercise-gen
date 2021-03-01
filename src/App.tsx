@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import ExerciseRecord from "./models/Exercise";
+import ExerciseRecord from "./models/ExerciseRecord";
 import Difficulty from "./models/Difficulty";
 import { extractExerciseRecord, calculateNextRepGoal } from "./services/utils";
 import { storeExerciseRecord } from "./services/LocalRecordStorageService";

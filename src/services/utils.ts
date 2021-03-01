@@ -1,5 +1,5 @@
 import Difficulty from "../models/Difficulty";
-import ExerciseRecord from "../models/Exercise";
+import ExerciseRecord from "../models/ExerciseRecord";
 import { retrieveLocalExerciseRecord } from "./LocalRecordStorageService";
 
 export function extractExerciseRecord(randExObj: any): ExerciseRecord {

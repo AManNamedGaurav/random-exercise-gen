@@ -1,4 +1,4 @@
-import ExerciseRecord from "../models/Exercise";
+import ExerciseRecord from "../models/ExerciseRecord";
 
 export const storeExerciseRecord = (exercise: ExerciseRecord) => {
   localStorage.setItem(exercise.id, JSON.stringify(exercise));
