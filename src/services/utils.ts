@@ -6,6 +6,7 @@ export function extractExerciseRecord(randExObj: any): ExerciseRecord {
   let id: string = randExObj["id"];
   let name: string = randExObj["name"];
   let description: string = randExObj["description"];
+  description = description.replace(/<\/?[^>]+(>|$)/g, "");
   let localExercise: ExerciseRecord;
   let item = localStorage.getItem(id);
   console.log(
