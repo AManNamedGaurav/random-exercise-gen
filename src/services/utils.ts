@@ -6,7 +6,6 @@ export function extractExerciseRecord(randExObj: any): ExerciseRecord {
   let id: string = randExObj["id"];
   let name: string = randExObj["name"];
   let description: string = randExObj["description"];
-  description = description.replace(/(<([^>]+)>)/gi, "");
   let localExercise: ExerciseRecord;
   let item = localStorage.getItem(id);
   console.log(
@@ -37,8 +36,17 @@ export function extractExerciseRecord(randExObj: any): ExerciseRecord {
     };
   }
   //TODO: create a local back up of all exercises in remote api endpoint
+
+  localExercise = {
+    ...localExercise,
+    description: removeHTMLTags(description),
+  };
   return localExercise;
 }
+
+const removeHTMLTags = (str: string): string => {
+  return str.replace(/(<([^>]+)>)/gi, "");
+};
 
 export const calculateNextRepGoal = (
   record: ExerciseRecord,
