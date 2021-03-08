@@ -1,52 +1,5 @@
 import Difficulty from "../models/Difficulty";
 import ExerciseRecord from "../models/ExerciseRecord";
-import { retrieveLocalExerciseRecord } from "./LocalRecordStorageService";
-
-export function extractExerciseRecord(randExObj: any): ExerciseRecord {
-  let id: string = randExObj["id"];
-  let name: string = randExObj["name"];
-  let description: string = randExObj["description"];
-  let localExercise: ExerciseRecord;
-  let item = localStorage.getItem(id);
-  console.log(
-    "item: " + item + "\nfound at key: " + id + "\n in local storage"
-  );
-  try {
-    localExercise = retrieveLocalExerciseRecord(id);
-    let remoteExercise = {
-      ...localExercise,
-      name: name,
-      description: description,
-    };
-    console.log("Remote and local exercises for the same id");
-    console.log("Local Exercise with id: " + localExercise.id);
-    console.log(localExercise);
-    console.log("Remote exercise with id: " + remoteExercise.id);
-    console.log(remoteExercise);
-  } catch (e) {
-    console.log("Could not find local exercise for id: " + id);
-    localExercise = {
-      id: id,
-      name: name,
-      description: description,
-      personalBest: 0,
-      repGoal: 5,
-      attemptCount: 0,
-      difficultyCurveScale: 1,
-    };
-  }
-  //TODO: create a local back up of all exercises in remote api endpoint
-
-  localExercise = {
-    ...localExercise,
-    description: removeHTMLTags(description),
-  };
-  return localExercise;
-}
-
-const removeHTMLTags = (str: string): string => {
-  return str.replace(/(<([^>]+)>)/gi, "");
-};
 
 export const calculateNextRepGoal = (
   record: ExerciseRecord,

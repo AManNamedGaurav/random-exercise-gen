@@ -1,39 +1,66 @@
 import React, { useState, useEffect } from "react";
 import ExerciseRecord from "./models/ExerciseRecord";
 import Difficulty from "./models/Difficulty";
-import { extractExerciseRecord, calculateNextRepGoal } from "./services/utils";
-import { storeExerciseRecord } from "./services/LocalRecordStorageService";
+import { calculateNextRepGoal } from "./services/utils";
+import {
+  retrieveLocalExerciseRecord,
+  storeExerciseRecord,
+} from "./services/LocalRecordStorageService";
 import HistoryDeletionDialog from "./components/HistoryDeletionDialog";
-
-const exerciseUrl =
-  "https://wger.de/api/v2/exerciseinfo/?equipment=7&language=2&limit=50";
+import useExerciseService from "./services/useExerciseService";
+import Exercise from "./models/Exercise";
 
 function App() {
   const [exerciseRecord, setExerciseRecord] = useState<ExerciseRecord | null>(
     null
   );
+  const [exercise, setExercise] = useState<Exercise | null>(null);
   const [isLoading, setLoading] = useState<boolean>(true);
   const [isExerciseAttempted, setExerciseAttempted] = useState<boolean>(false);
   const [isError, setError] = useState<boolean>(false);
 
-  useEffect(() => {
-    handleNewExerciseRequest();
-  }, []);
+  const exerciseService = useExerciseService();
 
-  const handleNewExerciseRequest = async () => {
-    setLoading(true);
-    setExerciseAttempted(false);
-    let response: Response = await fetch(exerciseUrl);
-    let data: any = await response.json();
-    let exerciseCount: number = data["count"];
-    //get a random object from the results array
-    let randExObj: object =
-      data["results"][Math.floor(Math.random() * exerciseCount)];
-    console.log("Random exercise object: \n" + randExObj);
-    //get relevant data from the exercise object and set state
-    let randomExerciseRecord: ExerciseRecord = extractExerciseRecord(randExObj);
-    setExerciseRecord(randomExerciseRecord);
-    setLoading(false);
+  useEffect(() => {
+    if (exerciseService.status === "loaded") {
+      handleNewExerciseRequest();
+      setLoading(false);
+    } else if (exerciseService.status === "error") {
+      console.log(exerciseService.error);
+    }
+  }, [exerciseService.status]);
+
+  const handleNewExerciseRequest = () => {
+    if (exerciseService.status === "loaded") {
+      setExerciseAttempted(false);
+      console.log(exerciseService.payload.length);
+      console.log(exerciseService.payload);
+      let randomExercise: Exercise =
+        exerciseService.payload[
+          Math.floor(Math.random() * exerciseService.payload.length)
+        ];
+      console.log("Random exercise object: \n" + randomExercise.name);
+      setExercise(randomExercise);
+      let record: ExerciseRecord;
+      try {
+        record = retrieveLocalExerciseRecord(randomExercise.id);
+      } catch (e) {
+        console.log(
+          "Could not find local exercise for id: " + randomExercise.id
+        );
+        record = {
+          id: randomExercise.id,
+          personalBest: 0,
+          repGoal: 5,
+          attemptCount: 0,
+          difficultyCurveScale: 1,
+        };
+      }
+      setExerciseRecord(record);
+    } else if (exerciseService.status === "error") {
+      setError(true);
+      console.log(exerciseService.error);
+    }
   };
 
   const handleExerciseAttempted = (difficulty: Difficulty) => {
@@ -91,8 +118,16 @@ function App() {
     }
     return (
       <div>
-        <div>{exerciseRecord?.name}</div>
-        <div>{exerciseRecord?.description}</div>
+        <div>{exercise?.name}</div>
+        <div>{exercise?.description}</div>
+        {exercise?.images.map((img) => {
+          return (
+            <img
+              src={img}
+              alt="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/300px-No_image_available.svg.png"
+            />
+          );
+        })}
         <div>Reps: {exerciseRecord?.repGoal}</div>
         <div>
           <button
