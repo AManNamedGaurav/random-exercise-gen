@@ -45,6 +45,7 @@ function App() {
       try {
         record = retrieveLocalExerciseRecord(randomExercise.id);
       } catch (e) {
+        console.log(e);
         console.log(
           "Could not find local exercise for id: " + randomExercise.id
         );
@@ -89,6 +90,10 @@ function App() {
       );
       updatedExRecord = { ...updatedExRecord, repGoal: newRepGoal };
       storeExerciseRecord(updatedExRecord);
+      console.log(
+        "Exercise record after updating rep goal: " +
+          retrieveLocalExerciseRecord(updatedExRecord.id).repGoal
+      );
     } else {
       console.error(
         "Trying to handle exercise attempted with no exercise in state"
