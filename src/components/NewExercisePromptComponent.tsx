@@ -1,9 +1,5 @@
 import {
   Button,
-  Card,
-  CardActionArea,
-  CardContent,
-  CardMedia,
   Grid,
   makeStyles,
   Typography,
@@ -12,6 +8,12 @@ import Difficulty from "../models/Difficulty";
 import Exercise from "../models/Exercise";
 import ExerciseRecord from "../models/ExerciseRecord";
 import HistoryDeletionDialog from "./HistoryDeletionDialog";
+import Accordion from '@material-ui/core/Accordion';
+import AccordionSummary from '@material-ui/core/AccordionSummary';
+import AccordionDetails from '@material-ui/core/AccordionDetails';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
+
 
 interface NewExercisePromptProps {
   exercise: Exercise;
@@ -32,6 +34,14 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const theme = createMuiTheme({
+  typography: {
+    button: {
+      fontSize: '3.2vw',
+    }
+  }
+})
+
 const NewExercisePromptComponent: React.FC<NewExercisePromptProps> = ({
   exercise,
   exerciseRecord,
@@ -40,72 +50,95 @@ const NewExercisePromptComponent: React.FC<NewExercisePromptProps> = ({
 }) => {
   const classes = useStyles();
   return (
-    <Grid
-      container
-      spacing={3}
-      direction="column"
-      alignContent="center"
-      alignItems="center"
-      justify="center"
-    >
-      <Grid item xs={12}>
-        <Typography className={classes.exerciseTitle} variant="h5">
-          {exercise.name}
-        </Typography>
-      </Grid>
-      <Grid item xs={12}>
-        <img src={exercise.images[0]} alt="" className={classes.image} />
-      </Grid>
-      <Grid item xs={12}>
-        <Typography className={classes.exerciseDesc}>
-          {exercise.description}
-        </Typography>
-      </Grid>
-      <Grid item xs={12} className={classes.reps}>
-        <Typography variant="h6">
-          Reps/Seconds: {exerciseRecord?.repGoal}
-        </Typography>
-      </Grid>
-      <Grid item xs={4}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => exerciseAttemptedHandler(Difficulty.IMPOSSIBLE)}
-        >
-          I couldn't complete the set
+    <ThemeProvider theme={theme}>
+      <Grid
+        container
+        spacing={3}
+        direction="column"
+        alignContent="center"
+        alignItems="center"
+        justify="center"
+      >
+        <Grid item xs={12}>
+          <Typography className={classes.exerciseTitle} variant="h5">
+            {exercise.name}
+          </Typography>
+        </Grid>
+        <Grid item xs={12}>
+          <img src={exercise.images[0]} alt="" className={classes.image} />
+        </Grid>
+        <Grid item xs={12}>
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+              <Typography>How to Perform</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
+                {exercise.description}
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+        </Grid>
+        <Grid item xs={12} className={classes.reps}>
+          <Typography variant="h5">
+            Reps/Seconds: {exerciseRecord?.repGoal}
+          </Typography>
+        </Grid>
+        <Grid item xs={12} container spacing={2} direction="row" alignContent="center"
+          alignItems="center"
+          justify="center">
+          <Grid item xs={4}>
+            <Button
+              variant="contained"
+              color="secondary"
+              fullWidth
+              onClick={() => exerciseAttemptedHandler(Difficulty.IMPOSSIBLE)}
+            >
+              Too Hard
+          </Button>
+          </Grid>
+          <Grid item xs={4}>
+            <Button
+              variant="contained"
+              color="default"
+              fullWidth
+              onClick={() => exerciseAttemptedHandler(Difficulty.CHALLENGING)}
+            >
+              Challenging
         </Button>
-      </Grid>
-      <Grid item xs={4}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => exerciseAttemptedHandler(Difficulty.CHALLENGING)}
-        >
-          That was a challenging set!
+          </Grid>
+          <Grid item xs={4}>
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              onClick={() => exerciseAttemptedHandler(Difficulty.EASY)}
+            >
+              Too Easy
         </Button>
-      </Grid>
-      <Grid item xs={4}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => exerciseAttemptedHandler(Difficulty.EASY)}
-        >
-          That was too easy!
+          </Grid>
+        </Grid>
+
+
+        <Grid item xs={12}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={newExerciseHandler}
+          >
+            Give me a different exercise!
         </Button>
+        </Grid>
+        <Grid item xs={12}>
+          <HistoryDeletionDialog />
+        </Grid>
       </Grid>
-      <Grid item xs={12}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={newExerciseHandler}
-        >
-          Give me a different exercise!
-        </Button>
-      </Grid>
-      <Grid item xs={12}>
-        <HistoryDeletionDialog />
-      </Grid>
-    </Grid>
+    </ThemeProvider>
+
   );
 };
 

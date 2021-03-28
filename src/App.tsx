@@ -42,7 +42,7 @@ function App() {
       console.log(exerciseService.payload);
       let randomExercise: Exercise =
         exerciseService.payload[
-          Math.floor(Math.random() * exerciseService.payload.length)
+        Math.floor(Math.random() * exerciseService.payload.length)
         ];
       console.log("Random exercise object: \n" + randomExercise.name);
       setExercise(randomExercise);
@@ -97,7 +97,7 @@ function App() {
       storeExerciseRecord(updatedExRecord);
       console.log(
         "Exercise record after updating rep goal: " +
-          retrieveLocalExerciseRecord(updatedExRecord.id).repGoal
+        retrieveLocalExerciseRecord(updatedExRecord.id).repGoal
       );
     } else {
       console.error(
@@ -157,6 +157,9 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    height: "auto",
+    width: "100%",
+
   },
 }));
 
