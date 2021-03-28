@@ -9,6 +9,11 @@ import {
 import HistoryDeletionDialog from "./components/HistoryDeletionDialog";
 import useExerciseService from "./services/useExerciseService";
 import Exercise from "./models/Exercise";
+import Button from "@material-ui/core/Button";
+import LoadingPage from "./components/LoadingPage";
+import ExerciseCompletedPage from "./components/ExerciseCompletedPage";
+import NewExercisePromptComponent from "./components/NewExercisePromptComponent";
+import { Container, makeStyles } from "@material-ui/core";
 
 function App() {
   const [exerciseRecord, setExerciseRecord] = useState<ExerciseRecord | null>(
@@ -103,66 +108,56 @@ function App() {
   };
 
   //*****************************************VIEW*********************************************** */
+  const classes = useStyles();
   if (isLoading) {
-    return <div>Loading</div>;
+    return (
+      <div className={classes.paper}>
+        <LoadingPage />
+      </div>
+    );
   } else if (!isError) {
     if (isExerciseAttempted) {
       return (
-        <>
-          <div>GOOD JOB</div>
-          <button
-            onClick={() => {
-              handleNewExerciseRequest();
-            }}
-          >
-            New Exercise
-          </button>
-          <HistoryDeletionDialog />
-        </>
+        <div className={classes.paper}>
+          <ExerciseCompletedPage onClick={handleNewExerciseRequest} />
+        </div>
       );
     }
-    return (
-      <div>
-        <div>{exercise?.name}</div>
-        <div>{exercise?.description}</div>
-        {exercise?.images.map((img) => {
-          return (
-            <img
-              src={img}
-              alt="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/300px-No_image_available.svg.png"
-            />
-          );
-        })}
-        <div>Reps: {exerciseRecord?.repGoal}</div>
-        <div>
-          <button
-            id="0"
-            onClick={() => handleExerciseAttempted(Difficulty.IMPOSSIBLE)}
-          >
-            I couldn't complete the set :(
-          </button>
-          <button
-            id="1"
-            onClick={() => handleExerciseAttempted(Difficulty.CHALLENGING)}
-          >
-            That was a challenging set!
-          </button>
-          <button
-            id="2"
-            onClick={() => handleExerciseAttempted(Difficulty.EASY)}
-          >
-            That was too easy!
-          </button>
-          <button onClick={() => handleNewExerciseRequest()}>
-            Give me a different exercise!
-          </button>
+    if (exercise && exerciseRecord) {
+      return (
+        <div className={classes.paper}>
+          <NewExercisePromptComponent
+            exercise={exercise}
+            exerciseRecord={exerciseRecord}
+            exerciseAttemptedHandler={handleExerciseAttempted}
+            newExerciseHandler={handleNewExerciseRequest}
+          />
         </div>
-        <HistoryDeletionDialog />
+      );
+    } else {
+      return (
+        <div className={classes.paper}>
+          <div>Something went wrong</div>
+        </div>
+      );
+    }
+  } else {
+    return (
+      <div className={classes.paper}>
+        <div>Something went wrong</div>
       </div>
     );
-  } else {
-    return <div>Something went wrong</div>;
   }
 }
+
+const useStyles = makeStyles((theme) => ({
+  paper: {
+    marginTop: theme.spacing(8),
+    marginBottom: theme.spacing(8),
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+}));
 
 export default App;

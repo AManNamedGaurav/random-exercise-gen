@@ -18,7 +18,7 @@ export default function HistoryDeletionDialog() {
   };
 
   return (
-    <div>
+    <>
       <Button variant="outlined" color="primary" onClick={handleClickOpen}>
         Delete Exercise History
       </Button>
@@ -52,6 +52,6 @@ export default function HistoryDeletionDialog() {
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </>
   );
 }
