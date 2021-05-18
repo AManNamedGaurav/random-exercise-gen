@@ -1,19 +1,13 @@
-import {
-  Button,
-  Grid,
-  makeStyles,
-  Typography,
-} from "@material-ui/core";
+import { Button, Grid, makeStyles, Typography } from "@material-ui/core";
 import Difficulty from "../models/Difficulty";
 import Exercise from "../models/Exercise";
 import ExerciseRecord from "../models/ExerciseRecord";
 import HistoryDeletionDialog from "./HistoryDeletionDialog";
-import Accordion from '@material-ui/core/Accordion';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
-
+import Accordion from "@material-ui/core/Accordion";
+import AccordionSummary from "@material-ui/core/AccordionSummary";
+import AccordionDetails from "@material-ui/core/AccordionDetails";
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+import { ThemeProvider, createMuiTheme } from "@material-ui/core/styles";
 
 interface NewExercisePromptProps {
   exercise: Exercise;
@@ -36,11 +30,9 @@ const useStyles = makeStyles((theme) => ({
 
 const theme = createMuiTheme({
   typography: {
-    button: {
-      fontSize: '3.2vw',
-    }
-  }
-})
+    button: {},
+  },
+});
 
 const NewExercisePromptComponent: React.FC<NewExercisePromptProps> = ({
   exercise,
@@ -77,9 +69,7 @@ const NewExercisePromptComponent: React.FC<NewExercisePromptProps> = ({
               <Typography>How to Perform</Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Typography>
-                {exercise.description}
-              </Typography>
+              <Typography>{exercise.description}</Typography>
             </AccordionDetails>
           </Accordion>
         </Grid>
@@ -88,9 +78,16 @@ const NewExercisePromptComponent: React.FC<NewExercisePromptProps> = ({
             Reps/Seconds: {exerciseRecord?.repGoal}
           </Typography>
         </Grid>
-        <Grid item xs={12} container spacing={2} direction="row" alignContent="center"
+        <Grid
+          item
+          xs={12}
+          container
+          spacing={2}
+          direction="row"
+          alignContent="center"
           alignItems="center"
-          justify="center">
+          justify="center"
+        >
           <Grid item xs={4}>
             <Button
               variant="contained"
@@ -99,7 +96,7 @@ const NewExercisePromptComponent: React.FC<NewExercisePromptProps> = ({
               onClick={() => exerciseAttemptedHandler(Difficulty.IMPOSSIBLE)}
             >
               Too Hard
-          </Button>
+            </Button>
           </Grid>
           <Grid item xs={4}>
             <Button
@@ -109,7 +106,7 @@ const NewExercisePromptComponent: React.FC<NewExercisePromptProps> = ({
               onClick={() => exerciseAttemptedHandler(Difficulty.CHALLENGING)}
             >
               Challenging
-        </Button>
+            </Button>
           </Grid>
           <Grid item xs={4}>
             <Button
@@ -119,10 +116,9 @@ const NewExercisePromptComponent: React.FC<NewExercisePromptProps> = ({
               onClick={() => exerciseAttemptedHandler(Difficulty.EASY)}
             >
               Too Easy
-        </Button>
+            </Button>
           </Grid>
         </Grid>
-
 
         <Grid item xs={12}>
           <Button
@@ -131,14 +127,13 @@ const NewExercisePromptComponent: React.FC<NewExercisePromptProps> = ({
             onClick={newExerciseHandler}
           >
             Give me a different exercise!
-        </Button>
+          </Button>
         </Grid>
         <Grid item xs={12}>
           <HistoryDeletionDialog />
         </Grid>
       </Grid>
     </ThemeProvider>
-
   );
 };
 
