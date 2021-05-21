@@ -35,11 +35,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const theme = createMuiTheme({
-  typography: {
-    button: {
-      fontSize: '3.2vw',
-    }
-  }
+
 })
 
 const NewExercisePromptComponent: React.FC<NewExercisePromptProps> = ({
@@ -108,7 +104,7 @@ const NewExercisePromptComponent: React.FC<NewExercisePromptProps> = ({
               fullWidth
               onClick={() => exerciseAttemptedHandler(Difficulty.CHALLENGING)}
             >
-              Challenging
+              Done
         </Button>
           </Grid>
           <Grid item xs={4}>
